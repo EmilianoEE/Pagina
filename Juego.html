@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Juego de Rebote</title>
+    <style>
+
+        #instrucciones {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            line-height: 1.5;
+            max-width: 200px;
+            z-index: 10;
+        }
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .botones {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .boton {
+            background-color: forestgreen;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+            .boton:hover {
+                background-color: white;
+                color: black;
+            }
+        canvas {
+            text-align: center;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #0f0;
+            background-image: url('fondo.png'); /* Cambia esto por tu fondo */
+            background-size: cover;
+            background-position: center;
+        }
+
+        #score {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            font-size: 24px;
+            margin-top: 10px;
+        }
+
+        #reiniciarBtn {
+            display: none;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #0f0;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+   
+</head>
+<body>
+
+
+    <h2>INSTRUCIONES</h2>
+    <h2>INSTRUCIONES</h2>
+    <h2>INSTRUCIONES</h2>
+    <h2>INSTRUCIONES</h2>
+    <div id="instrucciones">
+        <h2>INSTRUCCIONES</h2>
+        <p>- Usa las flechas izquierda y derecha para mover la plataforma.</p>
+        <p>- Evita que la pelota caiga.</p>
+        <p>- Ganas puntos cada vez que la pelota rebota.</p>
+        <p>- El juego termina si la pelota cae al suelo.</p>
+    </div>
+    <div class="botones">
+        <a href="Principal.html" class="boton">Principal</a>
+        <a href="Reciclaje.html" class="boton">Reciclaje electronico</a>
+        <a href="Basura.html" class="boton">Basura electronica</a>
+
+
+    </div>
+    <canvas id="juego" width="600" height="400"></canvas>
+    <div id="score">Puntos: 0</div>
+    <button id="reiniciarBtn" onclick="reiniciarJuego()">Reiniciar</button>
+
+    <script>
+        const canvas = document.getElementById('juego');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const botonReiniciar = document.getElementById('reiniciarBtn');
+
+        let puntos = 0;
+        let velocidadExtra = 0.5;
+
+        const plataforma = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 20,
+            width: 100,
+            height: 10,
+            velocidad: 7
+        };
+
+        const pelota = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radio: 15,
+            dx: 3,
+            dy: -3,
+            imagen: new Image()
+        };
+        pelota.imagen.src = 'celular.png';
+
+        let teclas = {
+            izquierda: false,
+            derecha: false
+        };
+
+        let juegoTerminado = false;
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') teclas.izquierda = true;
+            if (e.key === 'ArrowRight') teclas.derecha = true;
+        });
+
+        document.addEventListener('keyup', e => {
+            if (e.key === 'ArrowLeft') teclas.izquierda = false;
+            if (e.key === 'ArrowRight') teclas.derecha = false;
+        });
+
+        function moverPlataforma() {
+            if (teclas.izquierda && plataforma.x > 0) {
+                plataforma.x -= plataforma.velocidad;
+            }
+            if (teclas.derecha && plataforma.x + plataforma.width < canvas.width) {
+                plataforma.x += plataforma.velocidad;
+            }
+        }
+
+        function dibujarPlataforma() {
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(plataforma.x, plataforma.y, plataforma.width, plataforma.height);
+        }
+
+        function dibujarPelota() {
+            ctx.drawImage(pelota.imagen, pelota.x - pelota.radio, pelota.y - pelota.radio, pelota.radio * 2, pelota.radio * 2);
+        }
+
+        function actualizarJuego() {
+            if (juegoTerminado) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            moverPlataforma();
+            dibujarPlataforma();
+            dibujarPelota();
+
+            pelota.x += pelota.dx;
+            pelota.y += pelota.dy;
+
+            if (pelota.x + pelota.radio > canvas.width || pelota.x - pelota.radio < 0) {
+                pelota.dx *= -1;
+            }
+            if (pelota.y - pelota.radio < 0) {
+                pelota.dy *= -1;
+            }
+
+            if (
+                pelota.y + pelota.radio >= plataforma.y &&
+                pelota.x > plataforma.x &&
+                pelota.x < plataforma.x + plataforma.width
+            ) {
+                pelota.dy *= -1;
+                puntos++;
+                scoreDisplay.textContent = 'Puntos: ' + puntos;
+
+                if (puntos % 5 === 0) {
+                    pelota.dx *= 1 + velocidadExtra / 10;
+                    pelota.dy *= 1 + velocidadExtra / 10;
+                }
+            }
+
+            if (pelota.y - pelota.radio > canvas.height) {
+                juegoTerminado = true;
+                scoreDisplay.textContent += ' | ¡Fin del juego!';
+                botonReiniciar.style.display = 'block';
+            } else {
+                requestAnimationFrame(actualizarJuego);
+            }
+        }
+
+        function reiniciarJuego() {
+            puntos = 0;
+            juegoTerminado = false;
+            scoreDisplay.textContent = 'Puntos: 0';
+            botonReiniciar.style.display = 'none';
+            plataforma.x = canvas.width / 2 - 50;
+            pelota.x = canvas.width / 2;
+            pelota.y = canvas.height / 2;
+            pelota.dx = 3;
+            pelota.dy = -3;
+            actualizarJuego();
+        }
+
+        pelota.imagen.onload = () => {
+            actualizarJuego();
+        };
+    </script>
+</body>
+</html>
